@@ -32,7 +32,7 @@
     .btn-accept { background: #16a34a; color: #fff; }
     .btn-decline { background: #f5f5f5; color: #1a1a1a; border: 1px solid #ddd; }
 
-    .email-section { margin-top: 20px; }
+    .email-section { margin-bottom: 20px; }
     .email-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px; display: block; }
     .email-input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
     .email-input:focus { border-color: #1a1a1a; }
@@ -83,7 +83,6 @@
       <input class="email-input" id="emailInput" type="email" placeholder="exemple@email.com">
     </div>
 
-    <br>
     <div class="buttons">
       <button class="btn btn-accept" onclick="handleAccept()">✅ J'accepte / I accept</button>
       <button class="btn btn-decline" onclick="showDeclineForm()">❌ Je décline / I decline</button>
@@ -115,17 +114,17 @@
   const clientName = params.get('client_name') || '';
   const clientPhone = params.get('client_phone') || '';
   const estimateNumber = params.get('estimate_number') || '';
-  const pdfUrl = params.get('pdf_url') || '';
+  const fileId = params.get('file_id') || '';
   const webhookUrl = 'https://hook.us2.make.com/weaj6qmg3e9yaqxyo7k1oduifh0whelg';
 
   if (clientName) {
     document.getElementById('greeting').textContent = 'Bonjour ' + clientName + '! 👋';
   }
 
-  if (pdfUrl) {
-    document.getElementById('pdfFrame').src = pdfUrl;
-    // For download, convert preview URL to direct download
-    const downloadUrl = pdfUrl.replace('/preview', '/view');
+  if (fileId) {
+    const previewUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
+    const downloadUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
+    document.getElementById('pdfFrame').src = previewUrl;
     document.getElementById('pdfDownload').href = downloadUrl;
   }
 
@@ -156,7 +155,7 @@
         client_phone: clientPhone,
         client_email: getEmail(),
         estimate_number: estimateNumber,
-        pdf_url: pdfUrl
+        file_id: fileId
       })
     });
     document.getElementById('decisionCard').style.display = 'none';
@@ -180,7 +179,7 @@
         client_phone: clientPhone,
         client_email: getEmail(),
         estimate_number: estimateNumber,
-        pdf_url: pdfUrl
+        file_id: fileId
       })
     });
     document.getElementById('decisionCard').style.display = 'none';
