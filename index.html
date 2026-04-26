@@ -20,9 +20,10 @@
     .subtext { color: #666; font-size: 14px; line-height: 1.6; }
 
     .pdf-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
-    
-    .pdf-btn { display: block; background: #1a1a1a; color: #fff; text-align: center; padding: 18px; border-radius: 8px; font-weight: 600; font-size: 15px; text-decoration: none; transition: opacity 0.2s; }
-    .pdf-btn:hover { opacity: 0.85; }
+    .pdf-frame { width: 100%; height: 600px; border: none; border-radius: 8px; background: #f0f0f0; }
+    .pdf-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .btn-download { flex: 1; display: block; background: #f5f5f5; color: #1a1a1a; text-align: center; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; border: 1px solid #ddd; transition: opacity 0.2s; }
+    .btn-download:hover { opacity: 0.8; }
 
     .decision-label { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
     .buttons { display: flex; gap: 12px; }
@@ -30,6 +31,11 @@
     .btn:hover { opacity: 0.85; }
     .btn-accept { background: #16a34a; color: #fff; }
     .btn-decline { background: #f5f5f5; color: #1a1a1a; border: 1px solid #ddd; }
+
+    .email-section { margin-top: 20px; }
+    .email-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px; display: block; }
+    .email-input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+    .email-input:focus { border-color: #1a1a1a; }
 
     .decline-form { display: none; margin-top: 20px; }
     .decline-label { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #555; }
@@ -63,13 +69,21 @@
 
   <div class="card">
     <div class="pdf-label">📄 Votre soumission / Your estimate</div>
-    <a class="pdf-btn" id="pdfBtn" href="#" target="_blank">
-      📄 Voir la soumission PDF / View PDF estimate →
-    </a>
+    <iframe class="pdf-frame" id="pdfFrame" src="" allowfullscreen></iframe>
+    <div class="pdf-actions">
+      <a class="btn-download" id="pdfDownload" href="#" target="_blank">⬇️ Télécharger / Download PDF</a>
+    </div>
   </div>
 
   <div class="card" id="decisionCard">
     <div class="decision-label">Quelle est votre décision? / What is your decision?</div>
+
+    <div class="email-section">
+      <label class="email-label">📧 Votre courriel / Your email (optionnel / optional)</label>
+      <input class="email-input" id="emailInput" type="email" placeholder="exemple@email.com">
+    </div>
+
+    <br>
     <div class="buttons">
       <button class="btn btn-accept" onclick="handleAccept()">✅ J'accepte / I accept</button>
       <button class="btn btn-decline" onclick="showDeclineForm()">❌ Je décline / I decline</button>
@@ -109,7 +123,10 @@
   }
 
   if (pdfUrl) {
-    document.getElementById('pdfBtn').href = pdfUrl;
+    document.getElementById('pdfFrame').src = pdfUrl;
+    // For download, convert preview URL to direct download
+    const downloadUrl = pdfUrl.replace('/preview', '/view');
+    document.getElementById('pdfDownload').href = downloadUrl;
   }
 
   let selectedReason = '';
@@ -125,6 +142,10 @@
     document.getElementById('declineForm').style.display = 'block';
   }
 
+  function getEmail() {
+    return document.getElementById('emailInput').value || '';
+  }
+
   function handleAccept() {
     fetch(webhookUrl, {
       method: 'POST',
@@ -133,6 +154,7 @@
         decision: 'accepted',
         client_name: clientName,
         client_phone: clientPhone,
+        client_email: getEmail(),
         estimate_number: estimateNumber,
         pdf_url: pdfUrl
       })
@@ -156,6 +178,7 @@
         reason: selectedReason,
         client_name: clientName,
         client_phone: clientPhone,
+        client_email: getEmail(),
         estimate_number: estimateNumber,
         pdf_url: pdfUrl
       })
