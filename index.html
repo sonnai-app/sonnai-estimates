@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sonnai — Votre soumission / Your estimate</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f5; color: #1a1a1a; }
+
+    .header { background: #1a1a1a; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .header .brand { color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .header .tagline { color: #888; font-size: 12px; }
+
+    .container { max-width: 800px; margin: 32px auto; padding: 0 16px; }
+
+    .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+    .greeting { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .subtext { color: #666; font-size: 14px; }
+
+    .pdf-section { margin-bottom: 20px; }
+    .pdf-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+    .pdf-frame { width: 100%; height: 500px; border: none; border-radius: 8px; background: #f0f0f0; }
+    .pdf-fallback { display: none; background: #f7f7f7; border-radius: 8px; padding: 20px; text-align: center; }
+    .pdf-fallback a { color: #1a1a1a; font-weight: 600; text-decoration: underline; }
+
+    .decision-section { }
+    .decision-label { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .buttons { display: flex; gap: 12px; }
+    .btn { flex: 1; padding: 16px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-accept { background: #1a1a1a; color: #fff; }
+    .btn-decline { background: #f5f5f5; color: #1a1a1a; border: 1px solid #ddd; }
+
+    .decline-form { display: none; margin-top: 20px; }
+    .decline-label { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #555; }
+    .reasons { display: flex; flex-direction: column; gap: 8px; }
+    .reason { padding: 12px 16px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .reason:hover { border-color: #1a1a1a; background: #f9f9f9; }
+    .reason.selected { border-color: #1a1a1a; background: #1a1a1a; color: #fff; }
+    .btn-submit-decline { margin-top: 16px; width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: none; }
+
+    .success { display: none; text-align: center; padding: 40px 20px; }
+    .success .icon { font-size: 48px; margin-bottom: 16px; }
+    .success h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .success p { color: #666; font-size: 14px; }
+
+    .footer { text-align: center; padding: 24px; color: #aaa; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">Sonnai</div>
+  <div class="tagline">Estimates / Soumissions</div>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="greeting" id="greeting">Bonjour! 👋</div>
+    <div class="subtext">Votre soumission est prête. Consultez-la ci-dessous et indiquez votre décision. / Your estimate is ready. Review it below and let us know your decision.</div>
+  </div>
+
+  <div class="card pdf-section">
+    <div class="pdf-label">📄 Votre soumission / Your estimate</div>
+    <iframe class="pdf-frame" id="pdfFrame" src=""></iframe>
+    <div class="pdf-fallback" id="pdfFallback">
+      <p>📄 <a id="pdfLink" href="#" target="_blank">Cliquez ici pour voir votre soumission / Click here to view your estimate</a></p>
+    </div>
+  </div>
+
+  <div class="card decision-section" id="decisionCard">
+    <div class="decision-label">Quelle est votre décision? / What is your decision?</div>
+    <div class="buttons">
+      <button class="btn btn-accept" onclick="handleAccept()">✅ J'accepte / I accept</button>
+      <button class="btn btn-decline" onclick="showDeclineForm()">❌ Je décline / I decline</button>
+    </div>
+
+    <div class="decline-form" id="declineForm">
+      <div class="decline-label">Nous sommes désolés. Pourquoi déclinez-vous? / We're sorry. Why are you declining?</div>
+      <div class="reasons">
+        <div class="reason" onclick="selectReason(this, 'Trop cher / Too expensive')">💰 Trop cher / Too expensive</div>
+        <div class="reason" onclick="selectReason(this, 'Le délai ne me convient pas / Timing doesn\'t work')">⏱ Le délai ne me convient pas / Timing doesn't work</div>
+        <div class="reason" onclick="selectReason(this, 'Je compare d\'autres soumissions / Getting other quotes')">🔍 Je compare d'autres soumissions / Getting other quotes</div>
+        <div class="reason" onclick="selectReason(this, 'J\'ai trouvé un autre contracteur / Found another contractor')">🔧 J'ai trouvé un autre contracteur / Found another contractor</div>
+        <div class="reason" onclick="selectReason(this, 'Le travail n\'est plus nécessaire / Work no longer needed')">❌ Le travail n'est plus nécessaire / Work no longer needed</div>
+        <div class="reason" onclick="selectReason(this, 'Autre / Other')">💬 Autre / Other</div>
+      </div>
+      <button class="btn-submit-decline" id="submitDecline" onclick="handleDecline()">Confirmer le refus / Confirm decline</button>
+    </div>
+  </div>
+
+  <div class="success" id="successMsg"></div>
+
+</div>
+
+<div class="footer">Sonnai · sonnai.ca · hi@sonnai.ca</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const clientName = params.get('client_name') || '';
+  const clientPhone = params.get('client_phone') || '';
+  const estimateNumber = params.get('estimate_number') || '';
+  const pdfUrl = params.get('pdf_url') || '';
+  const webhookUrl = 'YOUR_MAKE_WEBHOOK_URL_HERE';
+
+  // Set greeting
+  if (clientName) {
+    document.getElementById('greeting').textContent = 'Bonjour ' + clientName + '! 👋';
+  }
+
+  // Load PDF
+  if (pdfUrl) {
+    document.getElementById('pdfFrame').src = pdfUrl;
+    document.getElementById('pdfLink').href = pdfUrl;
+    document.getElementById('pdfFrame').onerror = function() {
+      document.getElementById('pdfFrame').style.display = 'none';
+      document.getElementById('pdfFallback').style.display = 'block';
+    };
+  } else {
+    document.getElementById('pdfFrame').style.display = 'none';
+    document.getElementById('pdfFallback').style.display = 'block';
+  }
+
+  let selectedReason = '';
+
+  function selectReason(el, reason) {
+    document.querySelectorAll('.reason').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedReason = reason;
+    document.getElementById('submitDecline').style.display = 'block';
+  }
+
+  function showDeclineForm() {
+    document.getElementById('declineForm').style.display = 'block';
+  }
+
+  function handleAccept() {
+    fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        decision: 'accepted',
+        client_name: clientName,
+        client_phone: clientPhone,
+        estimate_number: estimateNumber,
+        pdf_url: pdfUrl
+      })
+    });
+    document.getElementById('decisionCard').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+    document.getElementById('successMsg').innerHTML = `
+      <div class="icon">🎉</div>
+      <h2>Merci! / Thank you!</h2>
+      <p>Votre acceptation a été confirmée. Le contracteur vous contactera très bientôt. / Your acceptance has been confirmed. The contractor will contact you shortly.</p>
+    `;
+  }
+
+  function handleDecline() {
+    if (!selectedReason) return;
+    fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        decision: 'declined',
+        reason: selectedReason,
+        client_name: clientName,
+        client_phone: clientPhone,
+        estimate_number: estimateNumber,
+        pdf_url: pdfUrl
+      })
+    });
+    document.getElementById('decisionCard').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+    document.getElementById('successMsg').innerHTML = `
+      <div class="icon">🙏</div>
+      <h2>Merci pour votre réponse / Thank you for your response</h2>
+      <p>Nous avons bien reçu votre décision. / We have received your decision.</p>
+    `;
+  }
+</script>
+
+</body>
+</html>
