@@ -17,20 +17,18 @@
     .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
     .greeting { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-    .subtext { color: #666; font-size: 14px; }
+    .subtext { color: #666; font-size: 14px; line-height: 1.6; }
 
-    .pdf-section { margin-bottom: 20px; }
-    .pdf-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
-    .pdf-frame { width: 100%; height: 500px; border: none; border-radius: 8px; background: #f0f0f0; }
-    .pdf-fallback { display: none; background: #f7f7f7; border-radius: 8px; padding: 20px; text-align: center; }
-    .pdf-fallback a { color: #1a1a1a; font-weight: 600; text-decoration: underline; }
+    .pdf-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+    
+    .pdf-btn { display: block; background: #1a1a1a; color: #fff; text-align: center; padding: 18px; border-radius: 8px; font-weight: 600; font-size: 15px; text-decoration: none; transition: opacity 0.2s; }
+    .pdf-btn:hover { opacity: 0.85; }
 
-    .decision-section { }
     .decision-label { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
     .buttons { display: flex; gap: 12px; }
     .btn { flex: 1; padding: 16px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
     .btn:hover { opacity: 0.85; }
-    .btn-accept { background: #1a1a1a; color: #fff; }
+    .btn-accept { background: #16a34a; color: #fff; }
     .btn-decline { background: #f5f5f5; color: #1a1a1a; border: 1px solid #ddd; }
 
     .decline-form { display: none; margin-top: 20px; }
@@ -39,12 +37,12 @@
     .reason { padding: 12px 16px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
     .reason:hover { border-color: #1a1a1a; background: #f9f9f9; }
     .reason.selected { border-color: #1a1a1a; background: #1a1a1a; color: #fff; }
-    .btn-submit-decline { margin-top: 16px; width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: none; }
+    .btn-submit-decline { margin-top: 16px; width: 100%; padding: 14px; background: #dc2626; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: none; }
 
     .success { display: none; text-align: center; padding: 40px 20px; }
     .success .icon { font-size: 48px; margin-bottom: 16px; }
     .success h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-    .success p { color: #666; font-size: 14px; }
+    .success p { color: #666; font-size: 14px; line-height: 1.6; }
 
     .footer { text-align: center; padding: 24px; color: #aaa; font-size: 12px; }
   </style>
@@ -60,18 +58,17 @@
 
   <div class="card">
     <div class="greeting" id="greeting">Bonjour! 👋</div>
-    <div class="subtext">Votre soumission est prête. Consultez-la ci-dessous et indiquez votre décision. / Your estimate is ready. Review it below and let us know your decision.</div>
+    <div class="subtext">Votre soumission est prête. Consultez-la et indiquez votre décision ci-dessous. / Your estimate is ready. Review it and let us know your decision below.</div>
   </div>
 
-  <div class="card pdf-section">
+  <div class="card">
     <div class="pdf-label">📄 Votre soumission / Your estimate</div>
-    <iframe class="pdf-frame" id="pdfFrame" src=""></iframe>
-    <div class="pdf-fallback" id="pdfFallback">
-      <p>📄 <a id="pdfLink" href="#" target="_blank">Cliquez ici pour voir votre soumission / Click here to view your estimate</a></p>
-    </div>
+    <a class="pdf-btn" id="pdfBtn" href="#" target="_blank">
+      📄 Voir la soumission PDF / View PDF estimate →
+    </a>
   </div>
 
-  <div class="card decision-section" id="decisionCard">
+  <div class="card" id="decisionCard">
     <div class="decision-label">Quelle est votre décision? / What is your decision?</div>
     <div class="buttons">
       <button class="btn btn-accept" onclick="handleAccept()">✅ J'accepte / I accept</button>
@@ -79,6 +76,7 @@
     </div>
 
     <div class="decline-form" id="declineForm">
+      <br>
       <div class="decline-label">Nous sommes désolés. Pourquoi déclinez-vous? / We're sorry. Why are you declining?</div>
       <div class="reasons">
         <div class="reason" onclick="selectReason(this, 'Trop cher / Too expensive')">💰 Trop cher / Too expensive</div>
@@ -106,22 +104,12 @@
   const pdfUrl = params.get('pdf_url') || '';
   const webhookUrl = 'https://hook.us2.make.com/weaj6qmg3e9yaqxyo7k1oduifh0whelg';
 
-  // Set greeting
   if (clientName) {
     document.getElementById('greeting').textContent = 'Bonjour ' + clientName + '! 👋';
   }
 
-  // Load PDF
   if (pdfUrl) {
-    document.getElementById('pdfFrame').src = pdfUrl;
-    document.getElementById('pdfLink').href = pdfUrl;
-    document.getElementById('pdfFrame').onerror = function() {
-      document.getElementById('pdfFrame').style.display = 'none';
-      document.getElementById('pdfFallback').style.display = 'block';
-    };
-  } else {
-    document.getElementById('pdfFrame').style.display = 'none';
-    document.getElementById('pdfFallback').style.display = 'block';
+    document.getElementById('pdfBtn').href = pdfUrl;
   }
 
   let selectedReason = '';
@@ -154,7 +142,7 @@
     document.getElementById('successMsg').innerHTML = `
       <div class="icon">🎉</div>
       <h2>Merci! / Thank you!</h2>
-      <p>Votre acceptation a été confirmée. Le contracteur vous contactera très bientôt. / Your acceptance has been confirmed. The contractor will contact you shortly.</p>
+      <p>Votre acceptation a été confirmée. Le contracteur vous contactera très bientôt pour planifier les travaux.<br><br>/ Your acceptance has been confirmed. The contractor will contact you shortly to schedule the work.</p>
     `;
   }
 
@@ -177,7 +165,7 @@
     document.getElementById('successMsg').innerHTML = `
       <div class="icon">🙏</div>
       <h2>Merci pour votre réponse / Thank you for your response</h2>
-      <p>Nous avons bien reçu votre décision. / We have received your decision.</p>
+      <p>Nous avons bien reçu votre décision. N'hésitez pas à nous recontacter si vous changez d'avis.<br><br>/ We have received your decision. Don't hesitate to contact us if you change your mind.</p>
     `;
   }
 </script>
