@@ -19,6 +19,19 @@
     .greeting { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
     .subtext { color: #666; font-size: 14px; line-height: 1.6; }
 
+    /* EMAIL GATE */
+    #emailGate { display: block; }
+    #mainContent { display: none; }
+
+    .gate-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .gate-sub { color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+    .gate-input-wrap { display: flex; gap: 10px; }
+    .gate-input { flex: 1; padding: 14px 16px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+    .gate-input:focus { border-color: #1a1a1a; }
+    .gate-btn { padding: 14px 24px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
+    .gate-btn:hover { opacity: 0.85; }
+    .gate-error { display: none; margin-top: 10px; color: #dc2626; font-size: 13px; font-weight: 600; }
+
     .pdf-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
     .pdf-frame { width: 100%; height: 600px; border: none; border-radius: 8px; background: #f0f0f0; }
     .pdf-actions { display: flex; gap: 10px; margin-top: 12px; }
@@ -31,11 +44,6 @@
     .btn:hover { opacity: 0.85; }
     .btn-accept { background: #16a34a; color: #fff; }
     .btn-decline { background: #f5f5f5; color: #1a1a1a; border: 1px solid #ddd; }
-
-    .email-section { margin-bottom: 20px; }
-    .email-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px; display: block; }
-    .email-input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
-    .email-input:focus { border-color: #1a1a1a; }
 
     .decline-form { display: none; margin-top: 20px; }
     .decline-label { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #555; }
@@ -62,55 +70,63 @@
 
 <div class="container">
 
-  <div class="card">
-    <div class="greeting" id="greeting">Bonjour! 👋</div>
-    <div class="subtext">Votre soumission est prête. Consultez-la et indiquez votre décision ci-dessous. / Your estimate is ready. Review it and let us know your decision below.</div>
-  </div>
-
-  <div class="card">
-    <div class="pdf-label">📄 Votre soumission / Your estimate</div>
-    <iframe class="pdf-frame" id="pdfFrame" src="" allowfullscreen></iframe>
-    <div class="pdf-actions">
-      <a class="btn-download" id="pdfDownload" href="#" target="_blank">⬇️ Télécharger / Download PDF</a>
+  <!-- EMAIL GATE -->
+  <div id="emailGate">
+    <div class="card">
+      <div class="greeting" id="greetingGate">Bonjour! 👋</div>
+      <div class="subtext" style="margin-top: 6px;">Votre soumission est prête. / Your estimate is ready.</div>
     </div>
-    <div style="margin-top: 16px; border-top: 1px solid #eee; padding-top: 16px;">
-      <label class="email-label">📧 Recevoir par courriel / Receive by email (optionnel / optional)</label>
-      <div style="display: flex; gap: 8px; margin-top: 8px;">
-        <input class="email-input" id="emailInput" type="email" placeholder="exemple@email.com" style="flex: 1;">
-        <button onclick="sendByEmail()" style="padding: 12px 16px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap;">
-          📨 Envoyer / Send
-        </button>
+    <div class="card">
+      <div class="gate-title">📧 Accédez à votre soumission / Access your estimate</div>
+      <div class="gate-sub">Entrez votre adresse courriel pour consulter votre soumission et confirmer votre décision.<br>Enter your email address to view your estimate and confirm your decision.</div>
+      <div class="gate-input-wrap">
+        <input class="gate-input" id="gateEmailInput" type="email" placeholder="exemple@email.com" onkeydown="if(event.key==='Enter') unlockEstimate()">
+        <button class="gate-btn" onclick="unlockEstimate()">Accéder / Access →</button>
       </div>
-      <div id="emailConfirm" style="display:none; margin-top: 8px; color: #16a34a; font-size: 13px; font-weight: 600;">
-        ✅ Envoyé! / Sent!
-      </div>
+      <div class="gate-error" id="gateError">⚠️ Veuillez entrer un courriel valide. / Please enter a valid email.</div>
     </div>
   </div>
 
-  <div class="card" id="decisionCard">
-    <div class="decision-label">Quelle est votre décision? / What is your decision?</div>
+  <!-- MAIN CONTENT (hidden until email entered) -->
+  <div id="mainContent">
 
-    <div class="buttons">
-      <button class="btn btn-accept" onclick="handleAccept()">✅ J'accepte / I accept</button>
-      <button class="btn btn-decline" onclick="showDeclineForm()">❌ Je décline / I decline</button>
+    <div class="card">
+      <div class="greeting" id="greeting">Bonjour! 👋</div>
+      <div class="subtext">Votre soumission est prête. Consultez-la et indiquez votre décision ci-dessous. / Your estimate is ready. Review it and let us know your decision below.</div>
     </div>
 
-    <div class="decline-form" id="declineForm">
-      <br>
-      <div class="decline-label">Nous sommes désolés. Pourquoi déclinez-vous? / We're sorry. Why are you declining?</div>
-      <div class="reasons">
-        <div class="reason" onclick="selectReason(this, 'Trop cher / Too expensive')">💰 Trop cher / Too expensive</div>
-        <div class="reason" onclick="selectReason(this, 'Le délai ne me convient pas / Timing doesn\'t work')">⏱ Le délai ne me convient pas / Timing doesn't work</div>
-        <div class="reason" onclick="selectReason(this, 'Je compare d\'autres soumissions / Getting other quotes')">🔍 Je compare d'autres soumissions / Getting other quotes</div>
-        <div class="reason" onclick="selectReason(this, 'J\'ai trouvé un autre contracteur / Found another contractor')">🔧 J'ai trouvé un autre contracteur / Found another contractor</div>
-        <div class="reason" onclick="selectReason(this, 'Le travail n\'est plus nécessaire / Work no longer needed')">❌ Le travail n'est plus nécessaire / Work no longer needed</div>
-        <div class="reason" onclick="selectReason(this, 'Autre / Other')">💬 Autre / Other</div>
+    <div class="card">
+      <div class="pdf-label">📄 Votre soumission / Your estimate</div>
+      <iframe class="pdf-frame" id="pdfFrame" src="" allowfullscreen></iframe>
+      <div class="pdf-actions">
+        <a class="btn-download" id="pdfDownload" href="#" target="_blank">⬇️ Télécharger / Download PDF</a>
       </div>
-      <button class="btn-submit-decline" id="submitDecline" onclick="handleDecline()">Confirmer le refus / Confirm decline</button>
     </div>
-  </div>
 
-  <div class="success" id="successMsg"></div>
+    <div class="card" id="decisionCard">
+      <div class="decision-label">Quelle est votre décision? / What is your decision?</div>
+      <div class="buttons">
+        <button class="btn btn-accept" onclick="handleAccept()">✅ J'accepte / I accept</button>
+        <button class="btn btn-decline" onclick="showDeclineForm()">❌ Je décline / I decline</button>
+      </div>
+      <div class="decline-form" id="declineForm">
+        <br>
+        <div class="decline-label">Nous sommes désolés. Pourquoi déclinez-vous? / We're sorry. Why are you declining?</div>
+        <div class="reasons">
+          <div class="reason" onclick="selectReason(this, 'Trop cher / Too expensive')">💰 Trop cher / Too expensive</div>
+          <div class="reason" onclick="selectReason(this, 'Le délai ne me convient pas / Timing doesn\'t work')">⏱ Le délai ne me convient pas / Timing doesn't work</div>
+          <div class="reason" onclick="selectReason(this, 'Je compare d\'autres soumissions / Getting other quotes')">🔍 Je compare d'autres soumissions / Getting other quotes</div>
+          <div class="reason" onclick="selectReason(this, 'J\'ai trouvé un autre contracteur / Found another contractor')">🔧 J'ai trouvé un autre contracteur / Found another contractor</div>
+          <div class="reason" onclick="selectReason(this, 'Le travail n\'est plus nécessaire / Work no longer needed')">❌ Le travail n'est plus nécessaire / Work no longer needed</div>
+          <div class="reason" onclick="selectReason(this, 'Autre / Other')">💬 Autre / Other</div>
+        </div>
+        <button class="btn-submit-decline" id="submitDecline" onclick="handleDecline()">Confirmer le refus / Confirm decline</button>
+      </div>
+    </div>
+
+    <div class="success" id="successMsg"></div>
+
+  </div>
 
 </div>
 
@@ -124,18 +140,54 @@
   const fileId = params.get('file_id') || '';
   const webhookUrl = 'https://hook.us2.make.com/weaj6qmg3e9yaqxyo7k1oduifh0whelg';
 
+  let clientEmail = '';
+  let selectedReason = '';
+
+  // Set greeting on gate
   if (clientName) {
-    document.getElementById('greeting').textContent = 'Bonjour ' + clientName + '! 👋';
+    document.getElementById('greetingGate').textContent = 'Bonjour ' + clientName + '! 👋';
   }
 
-  if (fileId) {
-    const previewUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
-    const downloadUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
-    document.getElementById('pdfFrame').src = previewUrl;
-    document.getElementById('pdfDownload').href = downloadUrl;
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
-  
-  let selectedReason = '';
+
+  function unlockEstimate() {
+    const input = document.getElementById('gateEmailInput').value.trim();
+    if (!isValidEmail(input)) {
+      document.getElementById('gateError').style.display = 'block';
+      return;
+    }
+    clientEmail = input;
+    document.getElementById('gateError').style.display = 'none';
+
+    // Send email to Make.com webhook
+    fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'email_captured',
+        client_email: clientEmail,
+        client_name: clientName,
+        client_phone: clientPhone,
+        estimate_number: estimateNumber,
+        file_id: fileId
+      })
+    });
+
+    // Hide gate, show main content
+    document.getElementById('emailGate').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+
+    // Set greeting and PDF
+    if (clientName) {
+      document.getElementById('greeting').textContent = 'Bonjour ' + clientName + '! 👋';
+    }
+    if (fileId) {
+      document.getElementById('pdfFrame').src = 'https://drive.google.com/file/d/' + fileId + '/preview';
+      document.getElementById('pdfDownload').href = 'https://drive.google.com/file/d/' + fileId + '/view';
+    }
+  }
 
   function selectReason(el, reason) {
     document.querySelectorAll('.reason').forEach(r => r.classList.remove('selected'));
@@ -146,6 +198,7 @@
 
   function showDeclineForm() {
     document.getElementById('declineForm').style.display = 'block';
+  }
 
   function handleAccept() {
     fetch(webhookUrl, {
@@ -155,7 +208,7 @@
         decision: 'accepted',
         client_name: clientName,
         client_phone: clientPhone,
-        client_email: getEmail(),
+        client_email: clientEmail,
         estimate_number: estimateNumber,
         file_id: fileId
       })
@@ -179,7 +232,7 @@
         reason: selectedReason,
         client_name: clientName,
         client_phone: clientPhone,
-        client_email: getEmail(),
+        client_email: clientEmail,
         estimate_number: estimateNumber,
         file_id: fileId
       })
@@ -192,22 +245,6 @@
       <p>Nous avons bien reçu votre décision. N'hésitez pas à nous recontacter si vous changez d'avis.<br><br>/ We have received your decision. Don't hesitate to contact us if you change your mind.</p>
     `;
   }
-    function sendByEmail() {
-  const email = document.getElementById('emailInput').value;
-  if (!email) return;
-  fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'send_email',
-      client_email: email,
-      client_name: clientName,
-      estimate_number: estimateNumber,
-      file_id: fileId
-    })
-  });
-  document.getElementById('emailConfirm').style.display = 'block';
-}
 </script>
 
 </body>
